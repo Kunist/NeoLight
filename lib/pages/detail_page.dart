@@ -83,8 +83,8 @@ class _DetailPageState extends State<DetailPage> {
           children: [
             _buildHeader(item),
             const SizedBox(height: 16),
-            _buildActionButtons(item),
-            const SizedBox(height: 16),
+            // _buildActionButtons(item),
+            // const SizedBox(height: 16),
             _buildBrief(item),
             const SizedBox(height: 16),
             _buildReviews(item),
@@ -98,8 +98,8 @@ class _DetailPageState extends State<DetailPage> {
   // 头部：封面和基本信息
   Widget _buildHeader(NeoItem item) {
     final isSquareCover = item.category == 'music' || item.category == 'podcast';
-    final coverSize = isSquareCover ? 160.0 : 140.0;
-    final coverHeight = isSquareCover ? 160.0 : 200.0;
+    final coverSize = isSquareCover ? 112.0 : 112.0;
+    final coverHeight = isSquareCover ? 112.0 : 160.0;
 
     return Container(
       color: Colors.white,
@@ -148,7 +148,7 @@ class _DetailPageState extends State<DetailPage> {
             ),
           ),
           const SizedBox(width: 16),
-          // 基本信息
+          // 右侧信息区域
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -198,33 +198,66 @@ class _DetailPageState extends State<DetailPage> {
                     ],
                   ),
                 const SizedBox(height: 12),
-                // 简略信息（可点击查看更多）
+                // 简略信息（可点击查看更多）- 箭头在文字末尾
                 InkWell(
                   onTap: _showDetailSheet,
                   child: Container(
-                    padding: const EdgeInsets.all(10),
+                    padding: const EdgeInsets.all(0),
                     decoration: BoxDecoration(
-                      color: Colors.grey[100],
-                      borderRadius: BorderRadius.circular(6),
+                      // color: Colors.grey[100],
+                      // borderRadius: BorderRadius.circular(6),
                     ),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            _getShortInfo(item),
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey[700],
-                              height: 1.3,
-                            ),
-                            maxLines: 3,
-                            overflow: TextOverflow.ellipsis,
-                          ),
+                    child: RichText(
+                      text: TextSpan(
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey[700],
+                          height: 1.3,
                         ),
-                        Icon(Icons.chevron_right, color: Colors.grey[500], size: 18),
-                      ],
+                        children: [
+                          TextSpan(text: _getShortInfo(item)),
+                          TextSpan(
+                            text: ' >',
+                            style: TextStyle(
+                              color: Colors.grey[500],
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
+                ),
+                const SizedBox(height: 12),
+                // 三个按钮
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildCompactActionButton(
+                        icon: Icons.favorite_outline,
+                        label: item.category == 'movie' || item.category == 'tv' ? '想看' : '想读',
+                        onTap: () {},
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: _buildCompactActionButton(
+                        icon: Icons.radio_button_checked_outlined,
+                        label: item.category == 'movie' || item.category == 'tv' ? '在看' : '在读',
+                        onTap: () {},
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: _buildCompactActionButton(
+                        icon: Icons.star_outline,
+                        label: item.category == 'movie' || item.category == 'tv' ? '看过' : '读过',
+                        onTap: () {},
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -262,6 +295,38 @@ class _DetailPageState extends State<DetailPage> {
     }
 
     return parts.join(' / ');
+  }
+
+  // 紧凑的操作按钮（用于头部）
+  Widget _buildCompactActionButton({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return OutlinedButton(
+      onPressed: onTap,
+      style: OutlinedButton.styleFrom(
+        padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
+        side: BorderSide(color: Colors.grey[300]!),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(6),
+        ),
+        minimumSize: Size.zero,
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: Colors.grey[700]),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: TextStyle(fontSize: 11, color: Colors.grey[700]),
+          ),
+        ],
+      ),
+    );
   }
 
   // 操作按钮
