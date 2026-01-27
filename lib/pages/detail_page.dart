@@ -175,17 +175,17 @@ class _DetailPageState extends State<DetailPage> {
                     ),
                   ),
                 ],
-                const SizedBox(height: 12),
+                const SizedBox(height: 6),
                 // 评分
                 if (item.rating > 0)
                   Row(
                     children: [
-                      Icon(Icons.star, color: Colors.orange[700], size: 20),
+                      Icon(Icons.star, color: Colors.orange[700], size: 16),
                       const SizedBox(width: 4),
                       Text(
                         item.rating.toStringAsFixed(1),
                         style: TextStyle(
-                          fontSize: 18,
+                          fontSize: 14,
                           fontWeight: FontWeight.bold,
                           color: Colors.orange[700],
                         ),
@@ -197,7 +197,7 @@ class _DetailPageState extends State<DetailPage> {
                       ),
                     ],
                   ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 6),
                 // 简略信息（可点击查看更多）- 箭头在文字末尾
                 InkWell(
                   onTap: _showDetailSheet,
