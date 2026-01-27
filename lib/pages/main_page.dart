@@ -14,11 +14,10 @@ class MainPage extends StatefulWidget {
 class _MainPageState extends State<MainPage> {
   int _currentIndex = 0;
 
-  // 三个页面（去掉搜索页）
   final List<Widget> _pages = [
-    const DiscoverPage(),   // 主页（发现）
-    const ShelfPage(),      // 标记/收藏
-    const SettingsPage(),   // 设置
+    const DiscoverPage(),
+    const ShelfPage(),
+    const SettingsPage(),
   ];
 
   @override
@@ -29,6 +28,7 @@ class _MainPageState extends State<MainPage> {
         children: _pages,
       ),
       bottomNavigationBar: NavigationBar(
+        // backgroundColor 会自动使用 theme 中的设置
         selectedIndex: _currentIndex,
         onDestinationSelected: (index) {
           setState(() {

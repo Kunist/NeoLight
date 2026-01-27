@@ -9,14 +9,16 @@ class SettingsPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('设置'),
-        backgroundColor: const Color(0xFFF6F6F6),
+        // backgroundColor 会自动使用 theme 中的设置
       ),
+      // backgroundColor 会自动使用 theme 中设置的 scaffoldBackgroundColor
       body: ListView(
         children: [
           const SizedBox(height: 20),
           // 用户信息
           Container(
             padding: const EdgeInsets.all(20),
+            color: Theme.of(context).appBarTheme.backgroundColor,  // 使用导航栏颜色
             child: Column(
               children: [
                 CircleAvatar(
@@ -35,7 +37,6 @@ class SettingsPage extends StatelessWidget {
                 const SizedBox(height: 8),
                 ElevatedButton(
                   onPressed: () {
-                    // TODO: 登录功能
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text('登录功能开发中...')),
                     );

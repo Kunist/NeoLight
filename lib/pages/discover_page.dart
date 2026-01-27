@@ -188,7 +188,7 @@ class _DiscoverPageState extends State<DiscoverPage>
         }
       },
       child: Scaffold(
-        backgroundColor: Colors.grey[50],
+        // backgroundColor 会自动使用 theme 中设置的 scaffoldBackgroundColor
         body: Column(
           children: [
             _buildCustomAppBar(),
@@ -203,16 +203,20 @@ class _DiscoverPageState extends State<DiscoverPage>
 
   // 自定义顶部栏
   Widget _buildCustomAppBar() {
+    // 从 main.dart 获取统一颜色
+    final navigationBarColor = Theme.of(context).appBarTheme.backgroundColor!;
+    final backgroundColor = Theme.of(context).scaffoldBackgroundColor;
+
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
       padding: EdgeInsets.only(
         top: MediaQuery.of(context).padding.top,
         left: 16,
         right: 16,
-          bottom: _isSearching ? 8 : 8,  // 非搜索状态增加底部间距
+        bottom: _isSearching ? 8 : 16,
       ),
       decoration: BoxDecoration(
-        color: _isSearching ? Colors.white : const Color(0xFFF6F6F6),
+        color: _isSearching ? Colors.white : navigationBarColor,  // 使用主题颜色
         boxShadow: _isSearching
             ? [
           BoxShadow(
@@ -227,7 +231,7 @@ class _DiscoverPageState extends State<DiscoverPage>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (!_isSearching) ...[
-            const SizedBox(height: 12),  // 标题上方间距
+            const SizedBox(height: 12),
             const Text(
               '发现',
               style: TextStyle(
@@ -235,7 +239,7 @@ class _DiscoverPageState extends State<DiscoverPage>
                 fontWeight: FontWeight.bold,
               ),
             ),
-            const SizedBox(height: 16),  // 标题和搜索框之间的间距
+            const SizedBox(height: 16),
           ] else ...[
             const SizedBox(height: 8),
           ],
