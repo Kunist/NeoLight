@@ -98,8 +98,8 @@ class _DetailPageState extends State<DetailPage> {
   // 头部：封面和基本信息
   Widget _buildHeader(NeoItem item) {
     final isSquareCover = item.category == 'music' || item.category == 'podcast';
-    final coverSize = isSquareCover ? 112.0 : 112.0;
-    final coverHeight = isSquareCover ? 112.0 : 160.0;
+    final coverSize = isSquareCover ? 120.0 : 120.0;
+    final coverHeight = isSquareCover ? 120.0 : 170.0;
 
     return Container(
       color: Colors.white,
@@ -148,125 +148,130 @@ class _DetailPageState extends State<DetailPage> {
             ),
           ),
           const SizedBox(width: 16),
-          // 右侧信息区域
+          // 右侧信息区域 - 使用固定高度的 SizedBox
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // 中文标题
-                Text(
-                  item.title,
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    height: 1.3,
-                  ),
-                ),
-                // 原名（如果有且不同于标题）
-                if (item.metadata['orig_title'] != null &&
-                    item.metadata['orig_title'] != item.title) ...[
-                  const SizedBox(height: 4),
+            child: SizedBox(
+              height: coverHeight,  // 与封面高度一致
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.max,
+                children: [
+                  // 中文标题
                   Text(
-                    item.metadata['orig_title'],
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey[600],
+                    item.title,
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
                       height: 1.3,
                     ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                ],
-                const SizedBox(height: 6),
-                // 评分
-                if (item.rating > 0)
+                  // 原名（如果有且不同于标题）
+                  if (item.metadata['orig_title'] != null &&
+                      item.metadata['orig_title'] != item.title) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      item.metadata['orig_title'],
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey[600],
+                        height: 1.3,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                  const SizedBox(height: 6),
+                  // 评分
+                  if (item.rating > 0)
+                    Row(
+                      children: [
+                        Icon(Icons.star, color: Colors.orange[700], size: 16),
+                        const SizedBox(width: 4),
+                        Text(
+                          item.rating.toStringAsFixed(1),
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.orange[700],
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          '(${item.ratingCount})',
+                          style: const TextStyle(fontSize: 14),
+                        ),
+                      ],
+                    ),
+                  const SizedBox(height: 8),
+                  // 简略信息（可点击查看更多）- 箭头在文字末尾
+                  Expanded(
+                    child: Align(
+                      alignment: Alignment.topLeft,
+                      child: InkWell(
+                        onTap: _showDetailSheet,
+                        child: RichText(
+                          text: TextSpan(
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey[700],
+                              height: 1.3,
+                            ),
+                            children: [
+                              TextSpan(text: _getShortInfo(item)),
+                              TextSpan(
+                                text: ' >',
+                                style: TextStyle(
+                                  color: Colors.grey[500],
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                          maxLines: 3,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  // 三个按钮
                   Row(
                     children: [
-                      Icon(Icons.star, color: Colors.orange[700], size: 16),
-                      const SizedBox(width: 4),
-                      Text(
-                        item.rating.toStringAsFixed(1),
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.orange[700],
+                      Expanded(
+                        child: _buildCompactActionButton(
+                          icon: Icons.favorite_outline,
+                          label: item.category == 'movie' || item.category == 'tv' ? '想看' : '想读',
+                          onTap: () {},
                         ),
                       ),
                       const SizedBox(width: 8),
-                      Text(
-                        '(${item.ratingCount})',
-                        style: const TextStyle(fontSize: 14),
+                      Expanded(
+                        child: _buildCompactActionButton(
+                          icon: Icons.radio_button_checked_outlined,
+                          label: item.category == 'movie' || item.category == 'tv' ? '在看' : '在读',
+                          onTap: () {},
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: _buildCompactActionButton(
+                          icon: Icons.star_outline,
+                          label: item.category == 'movie' || item.category == 'tv' ? '看过' : '读过',
+                          onTap: () {},
+                        ),
                       ),
                     ],
                   ),
-                const SizedBox(height: 6),
-                // 简略信息（可点击查看更多）- 箭头在文字末尾
-                InkWell(
-                  onTap: _showDetailSheet,
-                  child: Container(
-                    padding: const EdgeInsets.all(0),
-                    decoration: BoxDecoration(
-                      // color: Colors.grey[100],
-                      // borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: RichText(
-                      text: TextSpan(
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey[700],
-                          height: 1.3,
-                        ),
-                        children: [
-                          TextSpan(text: _getShortInfo(item)),
-                          TextSpan(
-                            text: ' >',
-                            style: TextStyle(
-                              color: Colors.grey[500],
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                      maxLines: 3,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                // 三个按钮
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildCompactActionButton(
-                        icon: Icons.favorite_outline,
-                        label: item.category == 'movie' || item.category == 'tv' ? '想看' : '想读',
-                        onTap: () {},
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: _buildCompactActionButton(
-                        icon: Icons.radio_button_checked_outlined,
-                        label: item.category == 'movie' || item.category == 'tv' ? '在看' : '在读',
-                        onTap: () {},
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: _buildCompactActionButton(
-                        icon: Icons.star_outline,
-                        label: item.category == 'movie' || item.category == 'tv' ? '看过' : '读过',
-                        onTap: () {},
-                      ),
-                    ),
-                  ],
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ],
       ),
     );
   }
-
   // 获取简略信息文本
   String _getShortInfo(NeoItem item) {
     final parts = <String>[];
@@ -322,7 +327,7 @@ class _DetailPageState extends State<DetailPage> {
           const SizedBox(width: 4),
           Text(
             label,
-            style: TextStyle(fontSize: 11, color: Colors.grey[700]),
+            style: TextStyle(fontSize: 14, color: Colors.grey[700]),
           ),
         ],
       ),
@@ -397,6 +402,7 @@ class _DetailPageState extends State<DetailPage> {
     );
   }
 
+
   // 简介
   Widget _buildBrief(NeoItem item) {
     if (item.brief.isEmpty) return const SizedBox.shrink();
@@ -408,7 +414,7 @@ class _DetailPageState extends State<DetailPage> {
     return Container(
       color: Colors.white,
       width: double.infinity,
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -433,7 +439,7 @@ class _DetailPageState extends State<DetailPage> {
                 ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 1),
           Text(
             item.brief,
             style: const TextStyle(
