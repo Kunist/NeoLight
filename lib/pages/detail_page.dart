@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../models/item.dart';
+import '../models/review.dart';
 import '../services/api_service.dart';
 
 class DetailPage extends StatefulWidget {
@@ -17,12 +18,20 @@ class DetailPage extends StatefulWidget {
 class _DetailPageState extends State<DetailPage> {
   NeoItem? _detailItem;
   bool _isLoading = true;
-  bool _showFullBrief = false;  // 控制简介展开
+  bool _showFullBrief = false; // 控制简介展开
+
+  // 评论相关状态
+  List<Review> _reviews = [];
+  bool _isLoadingReviews = false;
+  bool _hasMoreReviews = true;
+  int _currentPage = 1;
 
   @override
   void initState() {
     super.initState();
     _loadDetail();
+    // 暂时不自动加载评论，因为需要登录
+    // _loadReviews();
   }
 
   Future<void> _loadDetail() async {
@@ -41,6 +50,44 @@ class _DetailPageState extends State<DetailPage> {
         _detailItem = widget.item;
         _isLoading = false;
       });
+    }
+  }
+
+  // 加载评论列表
+  Future<void> _loadReviews() async {
+    // 防止重复加载
+    if (_isLoadingReviews || !_hasMoreReviews) return;
+
+    setState(() {
+      _isLoadingReviews = true;
+    });
+
+    try {
+      final reviews = await ApiService.getAllReviews(
+        itemId: widget.item.id,
+        category: widget.item.category,
+        page: _currentPage,
+        pageSize: 10,
+      );
+
+      if (mounted) {
+        setState(() {
+          if (reviews.isEmpty) {
+            _hasMoreReviews = false;
+          } else {
+            _reviews.addAll(reviews);
+            _currentPage++;
+          }
+          _isLoadingReviews = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoadingReviews = false;
+        });
+      }
+      print('加载评论错误: $e');
     }
   }
 
@@ -97,7 +144,8 @@ class _DetailPageState extends State<DetailPage> {
 
   // 头部：封面和基本信息
   Widget _buildHeader(NeoItem item) {
-    final isSquareCover = item.category == 'music' || item.category == 'podcast';
+    final isSquareCover = item.category == 'music' ||
+        item.category == 'podcast';
     final coverSize = isSquareCover ? 120.0 : 120.0;
     final coverHeight = isSquareCover ? 120.0 : 170.0;
 
@@ -116,11 +164,12 @@ class _DetailPageState extends State<DetailPage> {
               width: coverSize,
               height: coverHeight,
               fit: BoxFit.cover,
-              placeholder: (context, url) => Container(
-                width: coverSize,
-                height: coverHeight,
-                color: Colors.grey[200],
-              ),
+              placeholder: (context, url) =>
+                  Container(
+                    width: coverSize,
+                    height: coverHeight,
+                    color: Colors.grey[200],
+                  ),
               errorWidget: (context, url, error) {
                 return Container(
                   width: coverSize,
@@ -151,7 +200,7 @@ class _DetailPageState extends State<DetailPage> {
           // 右侧信息区域 - 使用固定高度的 SizedBox
           Expanded(
             child: SizedBox(
-              height: coverHeight,  // 与封面高度一致
+              height: coverHeight, // 与封面高度一致
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.max,
@@ -242,7 +291,8 @@ class _DetailPageState extends State<DetailPage> {
                       Expanded(
                         child: _buildCompactActionButton(
                           icon: Icons.favorite_outline,
-                          label: item.category == 'movie' || item.category == 'tv' ? '想看' : '想读',
+                          label: item.category == 'movie' ||
+                              item.category == 'tv' ? '想看' : item.category == 'book' ? '想读' : item.category == 'music' || item.category == 'podcast' ? '想听' : '想玩',
                           onTap: () {},
                         ),
                       ),
@@ -250,7 +300,8 @@ class _DetailPageState extends State<DetailPage> {
                       Expanded(
                         child: _buildCompactActionButton(
                           icon: Icons.radio_button_checked_outlined,
-                          label: item.category == 'movie' || item.category == 'tv' ? '在看' : '在读',
+                          label: item.category == 'movie' ||
+                              item.category == 'tv' ? '在看' : item.category == 'book' ? '在读' : item.category == 'music' || item.category == 'podcast' ? '在听' : '在玩',
                           onTap: () {},
                         ),
                       ),
@@ -258,7 +309,8 @@ class _DetailPageState extends State<DetailPage> {
                       Expanded(
                         child: _buildCompactActionButton(
                           icon: Icons.star_outline,
-                          label: item.category == 'movie' || item.category == 'tv' ? '看过' : '读过',
+                          label: item.category == 'movie' ||
+                              item.category == 'tv' ? '看过' : item.category == 'book' ? '读过' : item.category == 'music' || item.category == 'podcast' ? '听过' : '玩过',
                           onTap: () {},
                         ),
                       ),
@@ -272,6 +324,7 @@ class _DetailPageState extends State<DetailPage> {
       ),
     );
   }
+
   // 获取简略信息文本
   String _getShortInfo(NeoItem item) {
     final parts = <String>[];
@@ -286,16 +339,20 @@ class _DetailPageState extends State<DetailPage> {
       if (item.year != null) parts.add('${item.year}');
       if (item.metadata['area'] != null) {
         final areas = item.metadata['area'];
-        if (areas is List) parts.add(areas.join(' / '));
-        else parts.add(areas.toString());
+        if (areas is List)
+          parts.add(areas.join(' / '));
+        else
+          parts.add(areas.toString());
       }
     } else if (item.category == 'music') {
       parts.add(item.creatorsText);
       if (item.pubDate != null) parts.add(item.pubDate!);
       if (item.metadata['genre'] != null) {
         final genres = item.metadata['genre'];
-        if (genres is List) parts.add(genres.join(' / '));
-        else parts.add(genres.toString());
+        if (genres is List)
+          parts.add(genres.join(' / '));
+        else
+          parts.add(genres.toString());
       }
     }
 
@@ -408,13 +465,15 @@ class _DetailPageState extends State<DetailPage> {
     if (item.brief.isEmpty) return const SizedBox.shrink();
 
     // 判断是否需要显示"更多"按钮
-    final briefLines = item.brief.split('\n').length;
+    final briefLines = item.brief
+        .split('\n')
+        .length;
     final needsExpand = briefLines > 5 || item.brief.length > 200;
 
     return Container(
       color: Colors.white,
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 20),
+      padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -439,7 +498,7 @@ class _DetailPageState extends State<DetailPage> {
                 ),
             ],
           ),
-          const SizedBox(height: 1),
+          const SizedBox(height: 12),
           Text(
             item.brief,
             style: const TextStyle(
@@ -454,7 +513,8 @@ class _DetailPageState extends State<DetailPage> {
     );
   }
 
-  // 短评列表（模拟数据，实际需要调用评论API）
+
+  // 短评和长评列表
   Widget _buildReviews(NeoItem item) {
     return Container(
       color: Colors.white,
@@ -467,52 +527,62 @@ class _DetailPageState extends State<DetailPage> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Text(
-                '短评',
+                '评论',
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                 ),
               ),
-
+              TextButton(
+                onPressed: () {
+                  // TODO: 跳转到完整评论列表页面
+                },
+                child: const Text('查看全部'),
+              ),
             ],
           ),
           const SizedBox(height: 12),
-          _buildReviewItem(
-            username: 'selenophilia',
-            avatar: '🐱',
-            time: '4周前',
-            rating: 3.5,
-            status: '读过',
-            title: item.title,
-            content: '读了一部分',
-            likes: 0,
-          ),
-          const Divider(height: 24),
-          _buildReviewItem(
-            username: '爱果',
-            avatar: '👤',
-            time: '4个月前',
-            rating: 4.5,
-            status: '读过',
-            title: item.title,
-            content: '很好读，不过实操部分有点少',
-            likes: 0,
+          // 未登录提示
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 40),
+              child: Column(
+                children: [
+                  Icon(
+                    Icons.lock_outline,
+                    size: 48,
+                    color: Colors.grey[400],
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    '登录后查看评论',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('登录功能开发中...')),
+                      );
+                    },
+                    child: const Text('登录 NeoDB'),
+                  ),
+                ],
+              ),
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildReviewItem({
-    required String username,
-    required String avatar,
-    required String time,
-    required double rating,
-    required String status,
-    required String title,
-    required String content,
-    required int likes,
-  }) {
+  Widget _buildReviewItem(Review review) {
+    // 判断是长评还是短评
+    final isLongReview = review is LongReview;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -522,7 +592,12 @@ class _DetailPageState extends State<DetailPage> {
             CircleAvatar(
               radius: 20,
               backgroundColor: Colors.grey[300],
-              child: Text(avatar, style: const TextStyle(fontSize: 20)),
+              backgroundImage: review.userAvatar != null
+                  ? NetworkImage(review.userAvatar!)
+                  : null,
+              child: review.userAvatar == null
+                  ? const Icon(Icons.person, size: 20)
+                  : null,
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -530,14 +605,14 @@ class _DetailPageState extends State<DetailPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    username,
+                    review.username,
                     style: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
                   Text(
-                    time,
+                    review.timeAgo,
                     style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                   ),
                 ],
@@ -546,49 +621,77 @@ class _DetailPageState extends State<DetailPage> {
           ],
         ),
         const SizedBox(height: 8),
-        // 评分和状态
+        // 标记状态和评分
         Row(
           children: [
-            Text(
-              status,
-              style: const TextStyle(fontSize: 13),
-            ),
-            const SizedBox(width: 8),
-            Text(
-              title,
-              style: const TextStyle(fontSize: 13),
-            ),
+            if (review.shelfType != null) ...[
+              Text(
+                review.shelfTypeText,
+                style: const TextStyle(fontSize: 13),
+              ),
+              const SizedBox(width: 8),
+            ],
+            // 星级评分
+            if (review.rating != null)
+              Row(
+                children: List.generate(5, (index) {
+                  final starRating = review.starRating;
+                  if (index < starRating.floor()) {
+                    return Icon(
+                        Icons.star, size: 16, color: Colors.orange[700]);
+                  } else if (index < starRating) {
+                    return Icon(
+                        Icons.star_half, size: 16, color: Colors.orange[700]);
+                  } else {
+                    return Icon(
+                        Icons.star_outline, size: 16, color: Colors.grey[400]);
+                  }
+                }),
+              ),
           ],
         ),
-        const SizedBox(height: 4),
-        // 星级评分
-        Row(
-          children: List.generate(5, (index) {
-            if (index < rating.floor()) {
-              return Icon(Icons.star, size: 16, color: Colors.orange[700]);
-            } else if (index < rating) {
-              return Icon(Icons.star_half, size: 16, color: Colors.orange[700]);
-            } else {
-              return Icon(Icons.star_outline, size: 16, color: Colors.grey[400]);
-            }
-          }),
-        ),
         const SizedBox(height: 8),
+        // 长评标题
+        if (isLongReview && (review as LongReview).title != null) ...[
+          Text(
+            review.title!,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 4),
+        ],
         // 评论内容
         Text(
-          content,
+          review.content,
           style: const TextStyle(fontSize: 14, height: 1.5),
+          maxLines: isLongReview ? 3 : null,
+          overflow: isLongReview ? TextOverflow.ellipsis : null,
         ),
         const SizedBox(height: 8),
-        // 点赞
+        // 点赞和评论数
         Row(
           children: [
-            Icon(Icons.favorite_outline, size: 16, color: Colors.grey[600]),
+            Icon(
+              review.isLiked ? Icons.favorite : Icons.favorite_outline,
+              size: 16,
+              color: review.isLiked ? Colors.red : Colors.grey[600],
+            ),
             const SizedBox(width: 4),
             Text(
-              '$likes',
+              '${review.likeCount}',
               style: TextStyle(fontSize: 12, color: Colors.grey[600]),
             ),
+            if (review.commentCount > 0) ...[
+              const SizedBox(width: 16),
+              Icon(Icons.comment_outlined, size: 16, color: Colors.grey[600]),
+              const SizedBox(width: 4),
+              Text(
+                '${review.commentCount}',
+                style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+              ),
+            ],
           ],
         ),
       ],
@@ -600,7 +703,10 @@ class _DetailPageState extends State<DetailPage> {
     final item = _detailItem ?? widget.item;
 
     return Container(
-      height: MediaQuery.of(context).size.height * 0.7,
+      height: MediaQuery
+          .of(context)
+          .size
+          .height * 0.7,
       decoration: const BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
