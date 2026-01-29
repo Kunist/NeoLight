@@ -188,14 +188,15 @@ class _DiscoverPageState extends State<DiscoverPage>
         }
       },
       child: Scaffold(
-        body: _isSearching
-            ? Column(
+        // backgroundColor 会自动使用 theme 中设置的 scaffoldBackgroundColor
+        body: Column(
           children: [
             _buildCustomAppBar(),
-            Expanded(child: _buildSearchContent()),
+            Expanded(
+              child: _isSearching ? _buildSearchContent() : _buildDiscoverContent(),
+            ),
           ],
-        )
-            : _buildDiscoverContentWithSliver(),
+        ),
       ),
     );
   }
@@ -266,7 +267,7 @@ class _DiscoverPageState extends State<DiscoverPage>
               ),
               filled: true,
               fillColor: _isSearching ? Colors.grey[100] : Colors.white,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
             ),
             textInputAction: TextInputAction.search,
             onChanged: (value) {
@@ -507,68 +508,68 @@ class _DiscoverPageState extends State<DiscoverPage>
   }
 
 
-  // 使用 Sliver 的发现内容
-  Widget _buildDiscoverContentWithSliver() {
-    final navigationBarColor = Theme.of(context).appBarTheme.backgroundColor!;
-
-    return RefreshIndicator(
-      onRefresh: _loadTrendingItems,
-      child: CustomScrollView(
-        slivers: [
-          // SliverAppBar
-          SliverAppBar(
-            expandedHeight: 120.0,
-            floating: false,
-            pinned: true,
-            snap: false,
-            backgroundColor: navigationBarColor,
-            elevation: 0,
-            flexibleSpace: FlexibleSpaceBar(
-              titlePadding: const EdgeInsets.only(left: 16, bottom: 16),
-              title: null,
-              background: Padding(
-                padding: EdgeInsets.only(
-                  top: MediaQuery.of(context).padding.top + 12,
-                  left: 16,
-                  right: 16,
-                  bottom: 4,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      '发现',
-                      style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    _buildSearchBar(),
-                  ],
-                ),
-              ),
-            ),
-          ),
-          // 内容列表
-          SliverList(
-            delegate: SliverChildBuilderDelegate(
-                  (context, index) {
-                final category = _categories[index];
-                return _buildCategorySection(
-                  category['key']!,
-                  category['name']!,
-                  category['icon']!,
-                );
-              },
-              childCount: _categories.length,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  // // 使用 Sliver 的发现内容
+  // Widget _buildDiscoverContentWithSliver() {
+  //   final navigationBarColor = Theme.of(context).appBarTheme.backgroundColor!;
+  //
+  //   return RefreshIndicator(
+  //     onRefresh: _loadTrendingItems,
+  //     child: CustomScrollView(
+  //       slivers: [
+  //         // SliverAppBar
+  //         SliverAppBar(
+  //           expandedHeight: 120.0,
+  //           floating: false,
+  //           pinned: true,
+  //           snap: false,
+  //           backgroundColor: navigationBarColor,
+  //           elevation: 0,
+  //           flexibleSpace: FlexibleSpaceBar(
+  //             titlePadding: const EdgeInsets.only(left: 16, bottom: 16),
+  //             title: null,
+  //             background: Padding(
+  //               padding: EdgeInsets.only(
+  //                 top: MediaQuery.of(context).padding.top + 12,
+  //                 left: 16,
+  //                 right: 16,
+  //                 bottom: 4,
+  //               ),
+  //               child: Column(
+  //                 crossAxisAlignment: CrossAxisAlignment.start,
+  //                 children: [
+  //                   const Text(
+  //                     '发现',
+  //                     style: TextStyle(
+  //                       fontSize: 22,
+  //                       fontWeight: FontWeight.bold,
+  //                       color: Colors.black,
+  //                     ),
+  //                   ),
+  //                   const SizedBox(height: 8),
+  //                   _buildSearchBar(),
+  //                 ],
+  //               ),
+  //             ),
+  //           ),
+  //         ),
+  //         // 内容列表
+  //         SliverList(
+  //           delegate: SliverChildBuilderDelegate(
+  //                 (context, index) {
+  //               final category = _categories[index];
+  //               return _buildCategorySection(
+  //                 category['key']!,
+  //                 category['name']!,
+  //                 category['icon']!,
+  //               );
+  //             },
+  //             childCount: _categories.length,
+  //           ),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
   // 发现内容
   Widget _buildDiscoverContent() {
     return RefreshIndicator(
