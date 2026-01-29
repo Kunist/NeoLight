@@ -108,7 +108,7 @@ class _DetailPageState extends State<DetailPage> {
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
-        title: const Text('发现'),
+        title: const Text('详情'),
         backgroundColor: Colors.transparent,
         elevation: 0,
         actions: [

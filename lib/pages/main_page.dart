@@ -23,6 +23,7 @@ class _MainPageState extends State<MainPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBody: true,  // 让内容延伸到导航栏下方，实现透明效果
       body: IndexedStack(
         index: _currentIndex,
         children: _pages,

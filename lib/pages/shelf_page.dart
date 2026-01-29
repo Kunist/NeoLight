@@ -8,7 +8,15 @@ class ShelfPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('我的标记'),
+        title:
+        // const Text('标记'),
+        const Text(
+          '标记',
+          style: TextStyle(
+            fontSize: 22,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         // backgroundColor 会自动使用 theme 中的设置
       ),
       // backgroundColor 会自动使用 theme 中设置的 scaffoldBackgroundColor

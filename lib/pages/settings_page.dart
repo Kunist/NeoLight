@@ -8,7 +8,15 @@ class SettingsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('设置'),
+        title:
+        // const Text('设置'),
+        const Text(
+          '设置',
+          style: TextStyle(
+            fontSize: 22,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         // backgroundColor 会自动使用 theme 中的设置
       ),
       // backgroundColor 会自动使用 theme 中设置的 scaffoldBackgroundColor
