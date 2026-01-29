@@ -74,7 +74,7 @@ class NeoItem {
       creators: creators,
       pubDate: pubDate,
       metadata: json,
-    ).._debugPrint();
+    );
   }
 
   static List<String> _parseList(dynamic value) {
@@ -128,10 +128,5 @@ class NeoItem {
       return dirs.join(', ');
     }
     return dirs?.toString();
-  }
-
-  // 调试用
-  void _debugPrint() {
-    print('封面URL: $coverUrl');
   }
 }
