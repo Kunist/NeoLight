@@ -213,7 +213,8 @@ class _DiscoverPageState extends State<DiscoverPage>
         top: MediaQuery.of(context).padding.top,
         left: 16,
         right: 16,
-        bottom: _isSearching ? 8 : 4,
+        // 关键修改1：减小底部内边距，从 4/8 改为 2
+        bottom: _isSearching ? 12 : 12,
       ),
       decoration: BoxDecoration(
         color: _isSearching ? Colors.white : navigationBarColor,  // 使用主题颜色
@@ -231,6 +232,7 @@ class _DiscoverPageState extends State<DiscoverPage>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (!_isSearching) ...[
+            // 关键修改2：减小标题下方间距，从 12 改为 4
             const SizedBox(height: 12),
             const Text(
               '发现',
@@ -239,9 +241,10 @@ class _DiscoverPageState extends State<DiscoverPage>
                 fontWeight: FontWeight.bold,
               ),
             ),
-            const SizedBox(height: 16),
-          ] else ...[
+            // 关键修改3：减小搜索框上方间距，从 16 改为 4
             const SizedBox(height: 8),
+          ] else ...[
+            const SizedBox(height: 16),
           ],
           _buildSearchBar(),
         ],
@@ -254,28 +257,35 @@ class _DiscoverPageState extends State<DiscoverPage>
     return Row(
       children: [
         Expanded(
-          child: TextField(
-            controller: _searchController,
-            focusNode: _searchFocusNode,
-            decoration: InputDecoration(
-              hintText: '搜索图书、电影、音乐...',
-              hintStyle: TextStyle(fontSize: 14, color: Colors.grey[500]),
-              prefixIcon: Icon(Icons.search, size: 20, color: Colors.grey[600]),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: BorderSide.none,
+          // 核心修改：给 TextField 套 Container 强制指定高度
+          child: Container(
+            height: 35, // 自定义搜索框高度（推荐 40-50 之间）
+            child: TextField(
+              controller: _searchController,
+              focusNode: _searchFocusNode,
+              decoration: InputDecoration(
+                hintText: '搜索图书、电影、音乐...',
+                hintStyle: TextStyle(fontSize: 14, color: Colors.grey[500]),
+                prefixIcon: Icon(Icons.search, size: 20, color: Colors.grey[600]),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide.none,
+                ),
+                filled: true,
+                fillColor: _isSearching ? Colors.grey[100] : Colors.white,
+                // 调整 contentPadding 让文字垂直居中（vertical 可设为 0，靠 Container 高度撑起来）
+                contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 0),
+                // 可选：移除默认的内边距（防止和 contentPadding 冲突）
+                isDense: true,
               ),
-              filled: true,
-              fillColor: _isSearching ? Colors.grey[100] : Colors.white,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
+              textInputAction: TextInputAction.search,
+              onChanged: (value) {
+                _searchSuggestions(value);
+              },
+              onSubmitted: (value) {
+                _performFullSearch(value);
+              },
             ),
-            textInputAction: TextInputAction.search,
-            onChanged: (value) {
-              _searchSuggestions(value);
-            },
-            onSubmitted: (value) {
-              _performFullSearch(value);
-            },
           ),
         ),
         if (_isSearching) ...[
@@ -575,6 +585,8 @@ class _DiscoverPageState extends State<DiscoverPage>
     return RefreshIndicator(
       onRefresh: _loadTrendingItems,
       child: ListView(
+        // 关键修改4：移除ListView默认的顶部内边距
+        padding: EdgeInsets.zero,
         children: _categories.map((category) {
           return _buildCategorySection(
             category['key']!,
@@ -596,6 +608,7 @@ class _DiscoverPageState extends State<DiscoverPage>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
+          // 关键修改5：减小分类标题的上下内边距，从 4 改为 2
           padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
           child: Row(
             children: [
@@ -628,6 +641,7 @@ class _DiscoverPageState extends State<DiscoverPage>
             },
           ),
         ),
+        // 关键修改6：移除分类之间的间距，从 2 改为 0
         const SizedBox(height: 2),
       ],
     );
